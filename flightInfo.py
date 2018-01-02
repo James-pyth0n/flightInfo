@@ -1,5 +1,5 @@
 import requests
-import re
+import json
 
 def get_flights():
 	# creates a list of tuples containg the required data, from the line scraped = csv[9].strip('/"'),csv[13].strip('/"')
@@ -8,18 +8,18 @@ def get_flights():
 	spoofHeaders={'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:28.0) Gecko/20100101 Firefox/28.0', 'Method':'POST', 'Origin':'https://www.flightradar24.com', 'Referer':'https://www.flightradar24.com'}
 	url = 'https://data-live.flightradar24.com/zones/fcgi/feed.js?airline=!UAE&_=1513938553691'
 	result = requests.put(url,headers=spoofHeaders)
-	frReturn = result.content
-	planeAndFlight = []
-	matches = re.findall(r'\[.*?\]',frReturn)
-	for each in matches:
-		csv = each.split(',')
-		# all I wanted was flight number and plane id
-		# other info seems to be location heading and some other 
-		scraped = csv[9].strip('/"'),csv[13].strip('/"')
-		planeAndFlight.append(scraped)
-	return planeAndFlight
+	raw = result.content
+	data = json.loads(str(raw))
+	return data
 	
-print get_flights()
+data = get_flights()
+# data is a dictionary of lists
+print data
 
-
+# all I want is aircraft and flight number
+ignoreList = ('version', 'full_count')
+for each in data.keys():
+	if each not in ignoreList:
+		ent = data[each]
+print '{} - {}'.format(ent[9], ent[13])
 
